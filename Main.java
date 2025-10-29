@@ -175,7 +175,7 @@ public class Main extends JPanel {
         for (Asteroid a : asteroids) {
             a.draw(g);
             
-            g.drawRect(a.getBounds().x,a.getBounds().y,a.getBounds().width,a.getBounds().height); //hitbox
+            
         };
         for (Asteroid a : asteroids) {
             if (a.getBounds().intersects(playerRectangle)) {
