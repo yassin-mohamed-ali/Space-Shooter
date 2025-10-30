@@ -9,6 +9,7 @@ public class Main extends JPanel {
     public static final int HEIGHT = 600;
     Image spaceship = new ImageIcon("assets/spaceship.png").getImage();
     Image bg = new ImageIcon("assets/background.png").getImage();
+    Image shield = new ImageIcon("assets/shield.png").getImage();
     int moving_bg = 0;
     boolean hold_d = false;
     double hold_d_s = 0;
@@ -111,6 +112,16 @@ if (y > HEIGHT) {
             speed*=0.5;
             slowness_powerup= false;
         }
+        if (p.type() == 2) {
+            breaking_powerup = true;
+            Timer t = new Timer(3000, evt -> {breaking_powerup = false;});
+            t.setRepeats(false);
+            t.start();
+        }
+        if (p.type() == 3) {
+            revive_powerups++;
+
+        }
         powerups.remove(i); 
         i--; 
     }
@@ -148,10 +159,10 @@ if (y > HEIGHT) {
             repaint();
         for (Powerup p : powerups) p.update();
         if (powerups.size()<3) {
-        if (Math.random() < 0.001) { 
+        if (Math.random() < 0.0025) { 
                 int x = 800 + (int) (Math.random() * 400);
                 int y = (int) (Math.random() * 400);
-                int type =  1;//1 + (int)(Math.random() * 3)
+                int type =  1 + (int)(Math.random() * 3);//1 + (int)(Math.random() * 3)
                 powerups.add(new Powerup(x, y, type));
             }}});
         
@@ -204,6 +215,9 @@ if (y > HEIGHT) {
                 hold_a = false;
                 player_x = 380;
                 score = 0;
+                revive_powerups = 0;
+                breaking_powerup = false;
+                slowness_powerup = false;
                 asteroids = new ArrayList<>();
                 powerups = new ArrayList<>();
                 for (int i = 0; i < 5; i++) {
@@ -227,7 +241,12 @@ if (y > HEIGHT) {
         
         g.setColor(Color.RED);
         g.drawString("Score: "+score, 20, 50);
+        g.drawString("Revives: "+revive_powerups, 20, 85);
+        if (breaking_powerup) {
+            g.drawImage(shield, (int)player_x -10, 490, 90 , 90 , this);
+        }
         g.drawImage(spaceship, (int) player_x, 500, 70, 70, this);
+        
         playerRectangle = new Rectangle((int) player_x, 500, 70,70);
         
         
@@ -242,11 +261,27 @@ if (y > HEIGHT) {
         }
         for (Asteroid a : asteroids) {
             if (a.getBounds().intersects(playerRectangle)) {
+                if (!breaking_powerup && revive_powerups == 0){
                 alive = false;
                 if (score > high_score) {
                     high_score = score;
                 }
-            }}}
+            }
+        else if(breaking_powerup){
+            asteroids.remove(a);
+        }
+        else {
+            revive_powerups--;
+            asteroids = new ArrayList<>();
+                powerups = new ArrayList<>();
+                for (int i = 0; i < 5; i++) {
+                    int x = 800 + (int) (Math.random() * 400);
+                    int y = (int) (Math.random() * 400);
+                    int size = 50 + (int) (Math.random() * 30);
+                    asteroids.add(new Asteroid(x, y, size));
+        }
+        }
+    }}}
         
             else {
                 g.setColor(Color.RED);
