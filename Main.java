@@ -4,6 +4,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 
 public class Main extends JPanel {
+    
     public static final int WIDTH = 800;
     public static final int HEIGHT = 600;
     Image spaceship = new ImageIcon("assets/spaceship.png").getImage();
@@ -14,12 +15,18 @@ public class Main extends JPanel {
     boolean hold_a = false;
     double hold_a_s = 0;
     double player_x = 380;
+    Rectangle playerRectangle = new Rectangle((int) player_x, 500, 70,70);
     boolean alive = true;
+    boolean slowness_powerup = false;
+    boolean breaking_powerup = false;
+    int revive_powerups = 0;
     Image asteroidImage = new ImageIcon("assets/asteroid.png").getImage();
+    Image powerImage = new ImageIcon("assets/Powerup.png").getImage();
     double speed = 2;
     int score = 0;
     int high_score = 0;
     ArrayList<Asteroid> asteroids = new ArrayList<>();
+    ArrayList<Powerup> powerups = new ArrayList<>();
     public class Asteroid{
     int x,y, size;
     
@@ -44,7 +51,37 @@ public class Main extends JPanel {
         return new Rectangle(x, y, size, size);
     }
 }
+public class Powerup{
+    int x,y, type;
+    
+        public Powerup(int x, int y, int type) {
+            this.x=x;
+            this.y=y;
+            this.type = type;
+        }
+        public void update() {
+        
+        y += speed;
+        
 
+
+if (y > HEIGHT) {
+            x = (int)(Math.random() * (WIDTH - 20));
+            y = -20;}
+            else {}
+    }
+    public int type() {
+        return this.type;
+    }
+    
+    public void draw(Graphics g) {
+        g.drawImage(powerImage, x, y, 20, 20, null);
+    }
+
+    public Rectangle getBounds() {
+        return new Rectangle(x, y, 20, 20);
+    }
+}
 
     
     
@@ -66,6 +103,18 @@ public class Main extends JPanel {
             asteroids.add(new Asteroid(x, y, size));
         }
         Timer timer = new Timer(1, e -> {
+            for (int i = 0; i < powerups.size(); i++) {
+    Powerup p = powerups.get(i);
+    if (p.getBounds().intersects(playerRectangle)) {
+        if (p.type() == 1) { 
+            slowness_powerup = true;
+            speed*=0.5;
+            slowness_powerup= false;
+        }
+        powerups.remove(i); 
+        i--; 
+    }
+}
             moving_bg += 1;
             if (alive){
             score += 1;}
@@ -86,18 +135,25 @@ public class Main extends JPanel {
             
          for (Asteroid a : asteroids) a.update();
         if (asteroids.size() < 10){
-        if (Math.random() < 0.005) { 
+        if (Math.random() < 0.01) { 
                 int x = 800 + (int) (Math.random() * 400);
                 int y = (int) (Math.random() * 400);
                 int size = 40 + (int) (Math.random() * 30);
                 asteroids.add(new Asteroid(x, y, size));
             }}
             else {
-                speed += 0.001;
+                speed += 0.003;
             }
-            repaint();
             
-        });
+            repaint();
+        for (Powerup p : powerups) p.update();
+        if (powerups.size()<3) {
+        if (Math.random() < 0.001) { 
+                int x = 800 + (int) (Math.random() * 400);
+                int y = (int) (Math.random() * 400);
+                int type =  1;//1 + (int)(Math.random() * 3)
+                powerups.add(new Powerup(x, y, type));
+            }}});
         
         timer.start();
         }
@@ -142,12 +198,14 @@ public class Main extends JPanel {
         public void actionPerformed(ActionEvent e) {
             if (!alive) {
                 alive = true;
+                speed = 2;
                 moving_bg = 0;
                 hold_d = false;
                 hold_a = false;
                 player_x = 380;
                 score = 0;
                 asteroids = new ArrayList<>();
+                powerups = new ArrayList<>();
                 for (int i = 0; i < 5; i++) {
                     int x = 800 + (int) (Math.random() * 400);
                     int y = (int) (Math.random() * 400);
@@ -170,13 +228,18 @@ public class Main extends JPanel {
         g.setColor(Color.RED);
         g.drawString("Score: "+score, 20, 50);
         g.drawImage(spaceship, (int) player_x, 500, 70, 70, this);
-        Rectangle playerRectangle = new Rectangle((int) player_x, 500, 70,70);
+        playerRectangle = new Rectangle((int) player_x, 500, 70,70);
+        
+        
 
         for (Asteroid a : asteroids) {
             a.draw(g);
             
             
         };
+        for (Powerup p : powerups) {
+            p.draw(g);
+        }
         for (Asteroid a : asteroids) {
             if (a.getBounds().intersects(playerRectangle)) {
                 alive = false;
@@ -184,6 +247,7 @@ public class Main extends JPanel {
                     high_score = score;
                 }
             }}}
+        
             else {
                 g.setColor(Color.RED);
                 g.drawString("GAME OVER! ", 200, 200);
